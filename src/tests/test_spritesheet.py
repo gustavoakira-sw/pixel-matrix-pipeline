@@ -34,7 +34,10 @@ class SpritesheetTest(unittest.TestCase):
 
         self.assertEqual(sheet.size, (columns * tile_size, rows * tile_size))
         self.assertIn("frames", atlas)
+        self.assertIn("meta", atlas)
         self.assertEqual(len(atlas["frames"]), count)
+        self.assertEqual(atlas["meta"]["size"], {"w": columns * tile_size, "h": rows * tile_size})
+        self.assertEqual(atlas["meta"]["image"], "spritesheet.png")
 
         for index in range(count):
             key = f"tile_{index:03d}"
@@ -45,7 +48,9 @@ class SpritesheetTest(unittest.TestCase):
                 "w": tile_size,
                 "h": tile_size,
             }
-            self.assertEqual(atlas["frames"][key], expected)
+            self.assertEqual(atlas["frames"][key]["frame"], expected)
+            self.assertFalse(atlas["frames"][key]["rotated"])
+            self.assertFalse(atlas["frames"][key]["trimmed"])
 
 
 if __name__ == "__main__":

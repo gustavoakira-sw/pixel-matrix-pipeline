@@ -31,7 +31,7 @@ def main() -> None:
         raise ValueError(f"No PNG files found in {args.input_tiles_dir}")
 
     sheet = pack_sprites(sprite_paths, args.tile_size)
-    atlas = generate_atlas(sprite_paths, args.tile_size)
+    atlas = generate_atlas(sprite_paths, args.tile_size, image_name=args.output_image.name)
 
     args.output_image.parent.mkdir(parents=True, exist_ok=True)
     args.output_atlas.parent.mkdir(parents=True, exist_ok=True)

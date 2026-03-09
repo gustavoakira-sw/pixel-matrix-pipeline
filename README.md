@@ -25,6 +25,12 @@ This project converts between PNG sprites and a JSON matrix format, performs det
 ### v0.0.5 experiment
 - OpenAI-driven sprite variation script with strict schema validation and retries
 
+### v0.0.6 in progress
+- TMX loader (`load_tmx`) and TSX loader (`load_tsx`)
+- Tiled GID flag decoding (`decode_tiled_gid`)
+- Tile ID -> source-region mapping (`map_tile_ids_to_regions`)
+- Phaser-style atlas contract (`frames` + `meta`) with stricter validation
+
 ## Sprite Matrix Format
 
 ```json
@@ -104,6 +110,20 @@ python -m src.tools.swap_palette output/extracted/tile_000.json --map '#FF0000FF
 python -m src.tools.validate_outputs
 ```
 
+## Python API (TMX/TSX)
+
+Use the importer module directly for map/tileset ingestion:
+
+```python
+from src.pipeline.importer import load_tmx, load_tsx, map_tile_ids_to_regions
+
+tmx = load_tmx("Assets/Tiled/sample-map.tmx")
+tsx = load_tsx("Assets/Tiled/sample-sheet.tsx")
+
+# Example: map first 10 gids from first layer to source image regions.
+regions = map_tile_ids_to_regions(tmx["layers"][0]["gids"][:10], tsx, firstgid=1)
+```
+
 ## OpenAI Variation Script (Experimental)
 
 ```bash
@@ -124,6 +144,8 @@ Current suite includes:
 - pixel-perfect roundtrip checks
 - spritesheet + atlas grid checks
 - palette normalization/swap behavior checks
+- TMX/TSX importer happy/failure path checks
+- atlas contract validation checks (`frames` + `meta`)
 
 ## Sample Demo
 
@@ -199,14 +221,14 @@ Example excerpt:
      "#637585FF"
 ```
 
-  ## Asset Attribution
+## Asset Attribution
 
-  The following asset packs were used during testing and development:
+The following asset packs were used during testing and development:
 
-  - https://kenney.nl/assets/minimap-pack
-  - https://kenney.nl/assets/pico-8-platformer
-  - https://kenney.nl/assets/ui-pack-pixel-adventure
+- https://kenney.nl/assets/minimap-pack
+- https://kenney.nl/assets/pico-8-platformer
+- https://kenney.nl/assets/ui-pack-pixel-adventure
 
-  These assets belong to their respective authors/owners and are not redistributed here as project-owned art.
+These assets belong to their respective authors/owners and are not redistributed here as project-owned art.
 
 

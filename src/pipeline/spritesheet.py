@@ -23,6 +23,16 @@ def _ordered_paths(sprite_paths: list[str]) -> list[Path]:
     return sorted(Path(path) for path in sprite_paths)
 
 
+def _frame_entry(x: int, y: int, tile_size: int) -> dict:
+    return {
+        "frame": {"x": x, "y": y, "w": tile_size, "h": tile_size},
+        "rotated": False,
+        "trimmed": False,
+        "spriteSourceSize": {"x": 0, "y": 0, "w": tile_size, "h": tile_size},
+        "sourceSize": {"w": tile_size, "h": tile_size},
+    }
+
+
 def pack_sprites(sprite_paths: list[str], tile_size: int) -> Image.Image:
     """Pack equally sized PNG sprites into a deterministic grid spritesheet."""
     if tile_size <= 0:
@@ -46,18 +56,28 @@ def pack_sprites(sprite_paths: list[str], tile_size: int) -> Image.Image:
     return sheet
 
 
-def generate_atlas(sprite_paths: list[str], tile_size: int) -> dict:
-    """Generate deterministic grid frame metadata for a spritesheet pack."""
+def generate_atlas(sprite_paths: list[str], tile_size: int, *, image_name: str = "spritesheet.png") -> dict:
+    """Generate deterministic Phaser-style hash atlas metadata for a spritesheet pack."""
     if tile_size <= 0:
         raise ValueError("tile_size must be positive")
 
     paths = _ordered_paths(sprite_paths)
-    columns, _rows = _grid_dimensions(len(paths))
+    columns, rows = _grid_dimensions(len(paths))
 
-    frames: dict[str, dict[str, int]] = {}
+    frames: dict[str, dict] = {}
     for index, _path in enumerate(paths):
         x = (index % columns) * tile_size
         y = (index // columns) * tile_size
-        frames[f"tile_{index:03d}"] = {"x": x, "y": y, "w": tile_size, "h": tile_size}
+        frames[f"tile_{index:03d}"] = _frame_entry(x, y, tile_size)
 
-    return {"frames": frames}
+    return {
+        "frames": frames,
+        "meta": {
+            "app": "ai-game-pipeline",
+            "version": "0.0.6-dev",
+            "image": image_name,
+            "format": "RGBA8888",
+            "size": {"w": columns * tile_size, "h": rows * tile_size},
+            "scale": "1",
+        },
+    }

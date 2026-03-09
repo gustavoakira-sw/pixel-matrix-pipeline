@@ -48,6 +48,9 @@ def _check_atlas_and_spritesheet(
     frames = atlas.get("frames")
     if not isinstance(frames, dict):
         raise ValueError("atlas.json must contain an object key: 'frames'")
+    meta = atlas.get("meta")
+    if not isinstance(meta, dict):
+        raise ValueError("atlas.json must contain an object key: 'meta'")
 
     count = len(tile_files)
     if len(frames) != count:
@@ -63,6 +66,11 @@ def _check_atlas_and_spritesheet(
         raise ValueError(
             f"Spritesheet size mismatch: expected {expected_sheet_size}, got {actual_size}"
         )
+    if meta.get("size") != {"w": expected_sheet_size[0], "h": expected_sheet_size[1]}:
+        raise ValueError(
+            "Atlas meta.size mismatch with expected spritesheet dimensions "
+            f"{expected_sheet_size}: got {meta.get('size')}"
+        )
 
     for index in range(count):
         key = f"tile_{index:03d}"
@@ -72,6 +80,9 @@ def _check_atlas_and_spritesheet(
         frame = frames[key]
         if not isinstance(frame, dict):
             raise ValueError(f"Invalid frame payload for {key}")
+        frame_rect = frame.get("frame")
+        if not isinstance(frame_rect, dict):
+            raise ValueError(f"Missing frame.frame payload for {key}")
 
         expected = {
             "x": (index % columns) * tile_size,
@@ -79,8 +90,8 @@ def _check_atlas_and_spritesheet(
             "w": tile_size,
             "h": tile_size,
         }
-        if frame != expected:
-            raise ValueError(f"Frame mismatch for {key}: expected {expected}, got {frame}")
+        if frame_rect != expected:
+            raise ValueError(f"Frame mismatch for {key}: expected {expected}, got {frame_rect}")
 
 
 def main() -> None:
