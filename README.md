@@ -129,6 +129,30 @@ Current suite includes:
 
 Use `samples/blue_green_variation_demo/` to show the workflow with obvious visual changes.
 
+### How to Generate This Sample
+
+Run from project root:
+
+```bash
+# 1) Convert original sprite to matrix JSON
+python -m src.tools.sprite_to_matrix \
+  "Assets/Tiles/Large tiles/Thick outline/tile_0020.png" \
+  --output-json samples/blue_green_variation_demo/original_tile_0020.json
+
+# 2) Generate LLM variation JSON + PNG (blue body + green corners)
+python scripts/openai_sprite_variation.py \
+  --input-json samples/blue_green_variation_demo/original_tile_0020.json \
+  --output-json samples/blue_green_variation_demo/blue_green_variant.json \
+  --output-png samples/blue_green_variation_demo/blue_green_variant_rerendered.png \
+  --instruction "Recreate this tile with a blue box body and green corner accents. Keep shape and pixel-art shading style." \
+  --allow-palette-change \
+  --max-attempts 5
+
+# 3) Copy the original PNG and create result alias
+cp "Assets/Tiles/Large tiles/Thick outline/tile_0020.png" samples/blue_green_variation_demo/original_tile_0020.png
+cp samples/blue_green_variation_demo/blue_green_variant_rerendered.png samples/blue_green_variation_demo/result.png
+```
+
 ### Images
 
 Original sprite:
@@ -174,5 +198,15 @@ Example excerpt:
      "#647685FF",
      "#637585FF"
 ```
+
+  ## Asset Attribution
+
+  The following asset packs were used during testing and development:
+
+  - https://kenney.nl/assets/minimap-pack
+  - https://kenney.nl/assets/pico-8-platformer
+  - https://kenney.nl/assets/ui-pack-pixel-adventure
+
+  These assets belong to their respective authors/owners and are not redistributed here as project-owned art.
 
 
