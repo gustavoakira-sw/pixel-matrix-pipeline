@@ -1,4 +1,4 @@
-# ai-game-pipeline
+# pixel-matrix-pipeline
 
 Deterministic pixel-art pipeline for browser game assets.
 
