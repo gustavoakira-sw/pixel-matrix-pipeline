@@ -2,16 +2,30 @@
 
 Deterministic pixel-art pipeline for browser game assets.
 
-## v0.0.1
+This project converts between PNG sprites and a JSON matrix format, performs deterministic palette operations, builds spritesheets with atlas metadata, and validates output integrity for game-engine use.
 
-Implemented:
+## Current Scope
+
+### v0.0.1
 - PNG loading (`load_png`)
-- palette extraction (`extract_palette`)
-- sprite to matrix (`sprite_to_matrix`)
-- matrix to PNG (`matrix_to_png`)
-- fixed-size tile slicing (`slice_tiles`)
+- Palette extraction (`extract_palette`)
+- Sprite -> matrix (`sprite_to_matrix`)
+- Matrix -> PNG (`matrix_to_png`)
+- Fixed-size tile slicing (`slice_tiles`)
 
-Data format:
+### v0.0.2
+- Deterministic spritesheet packing (`pack_sprites`)
+- Atlas JSON generation (`generate_atlas`)
+
+### v0.0.3 / v0.0.4
+- Palette normalization (`normalize_palette`)
+- Palette swap (`swap_palette`)
+- Palette usage stats (`matrix_palette_stats`)
+
+### v0.0.5 experiment
+- OpenAI-driven sprite variation script with strict schema validation and retries
+
+## Sprite Matrix Format
 
 ```json
 {
@@ -22,12 +36,19 @@ Data format:
 }
 ```
 
+Rules:
+- `palette` uses exact `#RRGGBBAA`
+- `pixels` is `height` rows, each with `width` indices
+- every pixel index must be within `0..len(palette)-1`
+
 ## Project Layout
 
-- `Assets/`: all base art and source assets
 - `src/pipeline/`: core modules
-- `src/tools/`: CLI entry points
-- `src/tests/`: test suite
+- `src/tools/`: CLI tools
+- `src/tests/`: automated tests
+- `scripts/`: optional higher-level scripts (OpenAI experiment)
+- `samples/`: shareable examples
+- `Assets/`: local source assets (ignored in git)
 
 ## Setup
 
@@ -37,18 +58,121 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## CLI Usage
+## CLI Commands
 
-Run from project root:
+Run all commands from project root.
+
+### Extract tiles from tilesheet
 
 ```bash
 python -m src.tools.extract_tiles "Assets/Tilesheets/Small tiles/Thin outline/tilemap_packed.png" 16 --output-dir output/tiles
+```
+
+### Sprite -> matrix
+
+```bash
 python -m src.tools.sprite_to_matrix output/tiles/tile_000.png --output-json output/tile_000.json
+```
+
+### Matrix -> sprite
+
+```bash
 python -m src.tools.matrix_to_sprite output/tile_000.json --output-png output/tile_000_rebuilt.png
 ```
 
-## Test
+### Build spritesheet + atlas
+
+```bash
+python -m src.tools.build_spritesheet output/tiles --tile-size 16 --output-image output/spritesheet.png --output-atlas output/atlas.json
+```
+
+### Normalize palette
+
+```bash
+python -m src.tools.normalize_palette output/extracted/tile_000.json --output-json output/extracted/tile_000.normalized.json
+```
+
+### Swap palette (+ optional PNG)
+
+```bash
+python -m src.tools.swap_palette output/extracted/tile_000.json --map '#FF0000FF=#00FF00FF' --map '#0000FFFF=#FFFFFFFF' --output-json output/extracted/tile_000.swapped.json --output-png output/extracted/tile_000.swapped.png
+```
+
+### Validate generated outputs
+
+```bash
+python -m src.tools.validate_outputs
+```
+
+## OpenAI Variation Script (Experimental)
+
+```bash
+python scripts/openai_sprite_variation.py --input-json output/extracted/tile_0020.json --output-json output/extracted/tile_0020_blue_green_variant.json --output-png output/extracted/tile_0020_blue_green_variant.png --instruction "Recreate this tile with a blue box body and green corner accents. Keep shape and pixel-art shading style." --allow-palette-change --max-attempts 5
+```
+
+Notes:
+- Requires `OPENAI_API_KEY`
+- Output is schema-validated before writing
+
+## Tests
 
 ```bash
 python -m unittest discover -s src/tests -v
 ```
+
+Current suite includes:
+- pixel-perfect roundtrip checks
+- spritesheet + atlas grid checks
+- palette normalization/swap behavior checks
+
+## Sample Demo
+
+Use `samples/blue_green_variation_demo/` to show the workflow with obvious visual changes.
+
+### Images
+
+Original sprite:
+
+![Original Tile 0020](samples/blue_green_variation_demo/original_tile_0020.png)
+
+Blue/green variant (re-rendered from JSON):
+
+![Blue Green Variant Rerendered](samples/blue_green_variation_demo/blue_green_variant_rerendered.png)
+
+Final result image (`result.png`):
+
+![Result](samples/blue_green_variation_demo/result.png)
+
+### JSON Files
+
+- `samples/blue_green_variation_demo/original_tile_0020.json`
+- `samples/blue_green_variation_demo/blue_green_variant.json`
+
+### JSON Differences
+
+Generate a diff:
+
+```bash
+diff -u samples/blue_green_variation_demo/original_tile_0020.json samples/blue_green_variation_demo/blue_green_variant.json
+```
+
+Example excerpt:
+
+```diff
+@@ -3,10 +3,10 @@
+   "height": 32,
+   "palette": [
+     "#00000000",
+-    "#8E3F38FF",
+-    "#515F6BFF",
++    "#3A5F8CFF",
++    "#2A4837FF",
+     "#EC6A5EFF",
+-    "#CF5E53FF",
++    "#9AB85BFF",
+     "#778D9FFF",
+     "#647685FF",
+     "#637585FF"
+```
+
+
