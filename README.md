@@ -31,6 +31,11 @@ This project converts between PNG sprites and a JSON matrix format, performs det
 - Tile ID -> source-region mapping (`map_tile_ids_to_regions`)
 - Phaser-style atlas contract (`frames` + `meta`) with stricter validation
 
+### v0.0.7 in progress
+- Interactive PNG-in natural-language edit workflow (`scripts/openai_edit_sprite.py`)
+- Converts PNG -> matrix in-process, requests edit via OpenAI, validates JSON, renders PNG
+- Optional auto-open of generated image (`--open`)
+
 ## Sprite Matrix Format
 
 ```json
@@ -133,6 +138,23 @@ python scripts/openai_sprite_variation.py --input-json output/extracted/tile_002
 Notes:
 - Requires `OPENAI_API_KEY`
 - Output is schema-validated before writing
+
+## OpenAI Edit Sprite Script (Interactive)
+
+PNG input + natural-language instruction + validated JSON output + rendered PNG.
+
+```bash
+python scripts/openai_edit_sprite.py \
+  --input-png output/tiles/tile_000.png \
+  --instruction "Make this tile look icy blue with subtle white highlights" \
+  --output-json output/edited/tile_000_icy.json \
+  --output-png output/edited/tile_000_icy.png \
+  --open
+```
+
+Interactive fallback:
+- If `--input-png` is missing, it prompts for PNG path.
+- If `--instruction` is missing, it prompts for instruction.
 
 ## Tests
 

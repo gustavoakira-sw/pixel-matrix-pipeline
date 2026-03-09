@@ -20,7 +20,7 @@ This checklist starts the next implementation cycle toward engine-ready asset ex
 - [ ] Add CI command: `python -m unittest discover -s src/tests -v`.
 
 ## Phase 4: AI variation guardrails (experimental)
-- [ ] Add non-network tests for OpenAI script validation paths.
+- [x] Add non-network tests for OpenAI script validation paths.
 - [ ] Add optional changed-pixel threshold checks.
 - [ ] Add optional edit-mask enforcement for targeted transformations.
 

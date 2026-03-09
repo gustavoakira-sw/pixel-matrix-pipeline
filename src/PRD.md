@@ -2,7 +2,7 @@
 
 ## 1. Project
 
-**Name:** `ai-game-pipeline`
+**Name:** `pixel-matrix-pipeline`
 
 Python toolchain for AI-generated 2D pixel game assets for browser engines.
 
@@ -29,7 +29,7 @@ No interpolation and no unwanted palette modifications are allowed.
 ## 3. Current Repository Structure (Actual)
 
 ```text
-ai-game-pipeline/
+pixel-matrix-pipeline/
 ├── Assets/
 │   ├── Default/
 │   ├── Tiled/

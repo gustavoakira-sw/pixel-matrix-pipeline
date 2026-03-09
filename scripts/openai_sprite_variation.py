@@ -49,6 +49,11 @@ from typing import Any
 
 from openai import OpenAI
 
+# Allow running as `python scripts/openai_sprite_variation.py` from repo root.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 HEX_RGBA_RE = re.compile(r"^#[0-9A-Fa-f]{8}$")
 
 
