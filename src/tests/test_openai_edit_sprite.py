@@ -59,6 +59,72 @@ class OpenAIEditSpriteTest(unittest.TestCase):
             )
         self.assertEqual(result["width"], 1)
 
+    def test_request_accepts_flat_pixel_array(self) -> None:
+        reference = {
+            "width": 2,
+            "height": 2,
+            "palette": ["#00000000", "#FFFFFFFF"],
+            "pixels": [[0, 0], [0, 0]],
+        }
+        flattened = "{\"width\":2,\"height\":2,\"palette\":[\"#00000000\",\"#FFFFFFFF\"],\"pixels\":[0,1,1,0]}"
+
+        with patch.object(openai_edit_sprite, "OpenAI", lambda: _FakeOpenAI([flattened])):
+            result = openai_edit_sprite.request_edited_matrix(
+                reference,
+                "make a cross",
+                "gpt-4.1-mini",
+                1,
+                False,
+                t0=0.0,
+            )
+        self.assertEqual(result["pixels"], [[0, 1], [1, 0]])
+
+    def test_request_accepts_wrapped_matrix_object(self) -> None:
+        reference = {
+            "width": 1,
+            "height": 1,
+            "palette": ["#00000000", "#FFFFFFFF"],
+            "pixels": [[0]],
+        }
+        wrapped = "{\"result\":{\"width\":1,\"height\":1,\"palette\":[\"#00000000\",\"#FFFFFFFF\"],\"pixels\":[[1]]}}"
+
+        with patch.object(openai_edit_sprite, "OpenAI", lambda: _FakeOpenAI([wrapped])):
+            result = openai_edit_sprite.request_edited_matrix(
+                reference,
+                "brighten",
+                "gpt-4.1-mini",
+                1,
+                False,
+                t0=0.0,
+            )
+        self.assertEqual(result["pixels"], [[1]])
+
+    def test_request_repairs_wrong_height_and_pixel_shape(self) -> None:
+        reference = {
+            "width": 2,
+            "height": 2,
+            "palette": ["#00000000", "#FFFFFFFF"],
+            "pixels": [[0, 0], [0, 0]],
+        }
+        malformed = (
+            "{\"width\":2,\"height\":4,\"palette\":[\"#00000000\",\"#FFFFFFFF\"],"
+            "\"pixels\":[\"0, 1\",\"1, 0\"]}"
+        )
+
+        with patch.object(openai_edit_sprite, "OpenAI", lambda: _FakeOpenAI([malformed])):
+            result = openai_edit_sprite.request_edited_matrix(
+                reference,
+                "adjust it",
+                "gpt-4.1-mini",
+                1,
+                False,
+                t0=0.0,
+            )
+
+        self.assertEqual(result["width"], 2)
+        self.assertEqual(result["height"], 2)
+        self.assertEqual(result["pixels"], [[0, 1], [1, 0]])
+
     def test_main_happy_path_with_explicit_args(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
