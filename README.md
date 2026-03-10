@@ -63,43 +63,7 @@ python scripts/openai_sprite_variation.py \
 ./scripts/launch_openai_edit_gui.sh
 ```
 
-## Current Scope
 
-### v0.0.1
-- PNG loading (`load_png`)
-- Palette extraction (`extract_palette`)
-- Sprite -> matrix (`sprite_to_matrix`)
-- Matrix -> PNG (`matrix_to_png`)
-- Fixed-size tile slicing (`slice_tiles`)
-
-### v0.0.2
-- Deterministic spritesheet packing (`pack_sprites`)
-- Atlas JSON generation (`generate_atlas`)
-
-### v0.0.3 / v0.0.4
-- Palette normalization (`normalize_palette`)
-- Palette swap (`swap_palette`)
-- Palette usage stats (`matrix_palette_stats`)
-
-### v0.0.5 experiment
-- OpenAI-driven sprite variation script with strict schema validation and retries
-
-### v0.0.6 in progress
-- TMX loader (`load_tmx`) and TSX loader (`load_tsx`)
-- Tiled GID flag decoding (`decode_tiled_gid`)
-- Tile ID -> source-region mapping (`map_tile_ids_to_regions`)
-- Phaser-style atlas contract (`frames` + `meta`) with stricter validation
-
-### v0.0.7 in progress
-- Interactive PNG-in natural-language edit workflow (`scripts/openai_edit_sprite.py`)
-- Converts PNG -> matrix in-process, requests edit via OpenAI, validates JSON, renders PNG
-- Optional auto-open of generated image (`--open`)
-- Shared model JSON parsing + schema validation module (`src/pipeline/matrix_schema.py`)
-- Output-shape repair for common model drift (flattened/wrapped/misaligned `pixels`)
-- macOS GUI wrapper (`scripts/openai_edit_sprite_gui.py`) + shell launcher (`scripts/launch_openai_edit_gui.sh`)
-
-### Next milestone
-- Package these capabilities behind an MCP server interface so external GenAI agents can use the pipeline as tools.
 
 ## Sprite Matrix Format
 
@@ -304,6 +268,44 @@ To inspect JSON-level changes:
 ```bash
 diff -u samples/blue_green_variation_demo/original_tile_0020.json samples/blue_green_variation_demo/blue_green_variant.json
 ```
+
+## Current Scope
+
+### v0.0.1
+- PNG loading (`load_png`)
+- Palette extraction (`extract_palette`)
+- Sprite -> matrix (`sprite_to_matrix`)
+- Matrix -> PNG (`matrix_to_png`)
+- Fixed-size tile slicing (`slice_tiles`)
+
+### v0.0.2
+- Deterministic spritesheet packing (`pack_sprites`)
+- Atlas JSON generation (`generate_atlas`)
+
+### v0.0.3 / v0.0.4
+- Palette normalization (`normalize_palette`)
+- Palette swap (`swap_palette`)
+- Palette usage stats (`matrix_palette_stats`)
+
+### v0.0.5 experiment
+- OpenAI-driven sprite variation script with strict schema validation and retries
+
+### v0.0.6 in progress
+- TMX loader (`load_tmx`) and TSX loader (`load_tsx`)
+- Tiled GID flag decoding (`decode_tiled_gid`)
+- Tile ID -> source-region mapping (`map_tile_ids_to_regions`)
+- Phaser-style atlas contract (`frames` + `meta`) with stricter validation
+
+### v0.0.7 in progress
+- Interactive PNG-in natural-language edit workflow (`scripts/openai_edit_sprite.py`)
+- Converts PNG -> matrix in-process, requests edit via OpenAI, validates JSON, renders PNG
+- Optional auto-open of generated image (`--open`)
+- Shared model JSON parsing + schema validation module (`src/pipeline/matrix_schema.py`)
+- Output-shape repair for common model drift (flattened/wrapped/misaligned `pixels`)
+- macOS GUI wrapper (`scripts/openai_edit_sprite_gui.py`) + shell launcher (`scripts/launch_openai_edit_gui.sh`)
+
+### Next milestone
+- Package these capabilities behind an MCP server interface so external GenAI agents can use the pipeline as tools.
 
 ## Asset Attribution
 
