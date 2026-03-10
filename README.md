@@ -4,6 +4,15 @@ Deterministic pixel-art pipeline for browser game assets.
 
 This project converts between PNG sprites and a JSON matrix format, performs deterministic palette operations, builds spritesheets with atlas metadata, and validates output integrity for game-engine use.
 
+In practice, this lets you do things like:
+- Take a tile from a tilesheet, convert it to JSON, tweak it, and rebuild the PNG with pixel-perfect fidelity.
+- Normalize messy palettes from mixed assets so your game art keeps a consistent color language.
+- Batch-pack many tiles into one deterministic spritesheet and generate atlas metadata ready for runtime loading.
+- Ask the OpenAI-assisted workflow for a quick visual variant (for example, "make this mossy" or "make this icy") while enforcing schema checks.
+- Quickly test edits with the macOS GUI wrapper when you do not want to type CLI flags every run.
+
+
+
 ## Current Scope
 
 ### v0.0.1
@@ -35,6 +44,9 @@ This project converts between PNG sprites and a JSON matrix format, performs det
 - Interactive PNG-in natural-language edit workflow (`scripts/openai_edit_sprite.py`)
 - Converts PNG -> matrix in-process, requests edit via OpenAI, validates JSON, renders PNG
 - Optional auto-open of generated image (`--open`)
+- Shared model JSON parsing + schema validation module (`src/pipeline/matrix_schema.py`)
+- Output-shape repair for common model drift (flattened/wrapped/misaligned `pixels`)
+- macOS GUI wrapper (`scripts/openai_edit_sprite_gui.py`) + shell launcher (`scripts/launch_openai_edit_gui.sh`)
 
 ## Sprite Matrix Format
 
@@ -58,6 +70,7 @@ Rules:
 - `src/tools/`: CLI tools
 - `src/tests/`: automated tests
 - `scripts/`: optional higher-level scripts (OpenAI experiment)
+- `scripts/launch_openai_edit_gui.sh`: one-command macOS launcher for GUI wrapper
 - `samples/`: shareable examples
 - `Assets/`: local source assets (ignored in git)
 
@@ -164,6 +177,12 @@ For quick local testing without typing CLI arguments, use the AppleScript dialog
 python scripts/openai_edit_sprite_gui.py
 ```
 
+Or use the shell launcher:
+
+```bash
+./scripts/launch_openai_edit_gui.sh
+```
+
 What it does:
 - Opens a native file picker for the input PNG.
 - Prompts for the natural-language edit instruction.
@@ -187,6 +206,8 @@ Current suite includes:
 - palette normalization/swap behavior checks
 - TMX/TSX importer happy/failure path checks
 - atlas contract validation checks (`frames` + `meta`)
+- model JSON/schema parser checks (`src/pipeline/matrix_schema.py`)
+- OpenAI edit flow checks (interactive fallback, retries, and malformed output repair)
 
 ## Sample Demo
 
