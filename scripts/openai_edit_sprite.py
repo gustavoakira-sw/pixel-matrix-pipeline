@@ -86,6 +86,99 @@ def build_prompt(reference: dict[str, Any], instruction: str, allow_palette_chan
     )
 
 
+def _normalize_model_matrix(data: dict[str, Any], *, expected_width: int, expected_height: int) -> dict[str, Any]:
+    """Normalize common model output shapes into the SpriteMatrix contract."""
+    candidate: dict[str, Any] = data
+
+    # Some responses wrap the matrix under an extra object key.
+    for key in ("matrix", "sprite", "result", "data"):
+        value = candidate.get(key)
+        if isinstance(value, dict) and all(k in value for k in ("width", "height", "palette", "pixels")):
+            candidate = value
+            break
+
+    pixels = candidate.get("pixels")
+    if not isinstance(pixels, list):
+        return candidate
+
+    # Recover from flat arrays by reshaping into rows.
+    if pixels and all(isinstance(x, int) for x in pixels):
+        expected_len = expected_width * expected_height
+        if len(pixels) == expected_len:
+            rows = [pixels[i : i + expected_width] for i in range(0, expected_len, expected_width)]
+            candidate = dict(candidate)
+            candidate["pixels"] = rows
+
+    # Recover from rows emitted as whitespace/comma-separated strings.
+    if pixels and all(isinstance(x, str) for x in pixels):
+        parsed_rows: list[list[int]] = []
+        for row in pixels:
+            tokens = [t for t in row.replace(",", " ").split() if t]
+            try:
+                parsed_rows.append([int(t) for t in tokens])
+            except ValueError:
+                return candidate
+        candidate = dict(candidate)
+        candidate["pixels"] = parsed_rows
+
+    # Final coercion path: flatten mixed row formats and force exact expected grid size.
+    pixels = candidate.get("pixels")
+    if not isinstance(pixels, list):
+        return candidate
+
+    flat: list[int] = []
+
+    def _append_scalar(value: Any) -> bool:
+        if isinstance(value, int):
+            flat.append(value)
+            return True
+        if isinstance(value, str):
+            token = value.strip()
+            if token.isdigit() or (token.startswith("-") and token[1:].isdigit()):
+                flat.append(int(token))
+                return True
+            return False
+        return False
+
+    for row in pixels:
+        if isinstance(row, list):
+            for value in row:
+                if not _append_scalar(value):
+                    return candidate
+            continue
+        if isinstance(row, str):
+            tokens = [t for t in row.replace(",", " ").split() if t]
+            try:
+                flat.extend(int(t) for t in tokens)
+            except ValueError:
+                return candidate
+            continue
+        if not _append_scalar(row):
+            return candidate
+
+    if not flat:
+        return candidate
+
+    expected_len = expected_width * expected_height
+    if len(flat) < expected_len:
+        flat.extend([0] * (expected_len - len(flat)))
+    elif len(flat) > expected_len:
+        flat = flat[:expected_len]
+
+    palette = candidate.get("palette")
+    if isinstance(palette, list) and len(palette) > 0:
+        max_idx = len(palette) - 1
+        flat = [min(max(v, 0), max_idx) for v in flat]
+
+    rows = [flat[i : i + expected_width] for i in range(0, expected_len, expected_width)]
+    candidate = dict(candidate)
+    candidate["width"] = expected_width
+    candidate["height"] = expected_height
+    candidate["pixels"] = rows
+
+    return candidate
+
+
 def request_edited_matrix(
     reference: dict[str, Any],
     instruction: str,
@@ -117,6 +210,11 @@ def request_edited_matrix(
 
         try:
             data = parse_model_json(response.output_text)
+            data = _normalize_model_matrix(
+                data,
+                expected_width=reference["width"],
+                expected_height=reference["height"],
+            )
             validate_sprite_matrix(
                 data,
                 expected_width=reference["width"],

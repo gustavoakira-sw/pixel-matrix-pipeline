@@ -156,6 +156,25 @@ Interactive fallback:
 - If `--input-png` is missing, it prompts for PNG path.
 - If `--instruction` is missing, it prompts for instruction.
 
+## OpenAI Edit Sprite GUI (macOS osascript)
+
+For quick local testing without typing CLI arguments, use the AppleScript dialog wrapper:
+
+```bash
+python scripts/openai_edit_sprite_gui.py
+```
+
+What it does:
+- Opens a native file picker for the input PNG.
+- Prompts for the natural-language edit instruction.
+- Prompts for palette mode (`Auto`, `Allow`, `Disallow`) and max attempts.
+- Runs the same validated edit pipeline as `openai_edit_sprite.py`.
+- Opens both the original and re-created PNGs when done.
+
+Notes:
+- macOS only (`osascript`).
+- Requires `OPENAI_API_KEY` in environment.
+
 ## Tests
 
 ```bash
