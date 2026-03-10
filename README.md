@@ -2,7 +2,16 @@
 
 Deterministic pixel-art pipeline for browser game assets.
 
-This project converts between PNG sprites and a JSON matrix format, performs deterministic palette operations, builds spritesheets with atlas metadata, and validates output integrity for game-engine use.
+This project exists to let GenAI agents reliably create and edit production-usable pixel art. The current codebase provides deterministic PNG/JSON transforms, palette tooling, spritesheet packing, and output validation so model-generated assets stay valid and engine-ready.
+
+## Primary Goal: GenAI Agent Pixel Art via MCP
+
+This is not a generic asset utility toolkit. The end goal is to turn this project into an MCP server that AI agents can call to:
+- generate and edit pixel-art assets through a strict, validated contract
+- run deterministic transforms without quality drift
+- return engine-ready outputs (PNG + metadata) that are safe to automate in agent workflows
+
+Current scripts and CLIs are the foundation layer for that MCP server.
 
 In practice, this lets you do things like:
 - Take a tile from a tilesheet, convert it to JSON, tweak it, and rebuild the PNG with pixel-perfect fidelity.
@@ -11,7 +20,48 @@ In practice, this lets you do things like:
 - Ask the OpenAI-assisted workflow for a quick visual variant (for example, "make this mossy" or "make this icy") while enforcing schema checks.
 - Quickly test edits with the macOS GUI wrapper when you do not want to type CLI flags every run.
 
+All using natural language.
 
+## Quick Sample and Examples
+
+If you want to see the project working in under a minute, start here.
+
+Sample artifacts live in `samples/blue_green_variation_demo/`.
+
+Visual preview:
+
+Original:
+
+[![Original Tile 0020](samples/blue_green_variation_demo/original_tile_0020.png)](samples/blue_green_variation_demo/original_tile_0020.png)
+
+Variation (LLM-generated, re-rendered from JSON):
+
+[![Blue Green Variant](samples/blue_green_variation_demo/blue_green_variant_rerendered.png)](samples/blue_green_variation_demo/blue_green_variant_rerendered.png)
+
+Side-by-side comparison (`result.png`):
+
+[![Result Comparison](samples/blue_green_variation_demo/result.png)](samples/blue_green_variation_demo/result.png)
+
+Minimal example flow:
+
+```bash
+# 1) Convert sprite PNG -> matrix JSON
+python -m src.tools.sprite_to_matrix \
+  "Assets/Tiles/Large tiles/Thick outline/tile_0020.png" \
+  --output-json output/extracted/tile_0020.json
+
+# 2) Generate an OpenAI variation (blue body + green corners)
+python scripts/openai_sprite_variation.py \
+  --input-json output/extracted/tile_0020.json \
+  --output-json output/extracted/tile_0020_blue_green_variant.json \
+  --output-png output/extracted/tile_0020_blue_green_variant.png \
+  --instruction "Recreate this tile with a blue box body and green corner accents. Keep shape and pixel-art shading style." \
+  --allow-palette-change \
+  --max-attempts 5
+
+# 3) (macOS) Run the GUI edit flow without CLI flags
+./scripts/launch_openai_edit_gui.sh
+```
 
 ## Current Scope
 
@@ -47,6 +97,9 @@ In practice, this lets you do things like:
 - Shared model JSON parsing + schema validation module (`src/pipeline/matrix_schema.py`)
 - Output-shape repair for common model drift (flattened/wrapped/misaligned `pixels`)
 - macOS GUI wrapper (`scripts/openai_edit_sprite_gui.py`) + shell launcher (`scripts/launch_openai_edit_gui.sh`)
+
+### Next milestone
+- Package these capabilities behind an MCP server interface so external GenAI agents can use the pipeline as tools.
 
 ## Sprite Matrix Format
 
@@ -213,6 +266,8 @@ Current suite includes:
 
 Use `samples/blue_green_variation_demo/` to show the workflow with obvious visual changes.
 
+For quick visual context, see the "Visual preview" section near the top of this README.
+
 ### How to Generate This Sample
 
 Run from project root:
@@ -237,50 +292,17 @@ cp "Assets/Tiles/Large tiles/Thick outline/tile_0020.png" samples/blue_green_var
 cp samples/blue_green_variation_demo/blue_green_variant_rerendered.png samples/blue_green_variation_demo/result.png
 ```
 
-### Images
-
-Original sprite:
-
-![Original Tile 0020](samples/blue_green_variation_demo/original_tile_0020.png)
-
-Blue/green variant (re-rendered from JSON):
-
-![Blue Green Variant Rerendered](samples/blue_green_variation_demo/blue_green_variant_rerendered.png)
-
-Final result image (`result.png`):
-
-![Result](samples/blue_green_variation_demo/result.png)
-
-### JSON Files
-
+Useful files in the sample folder:
+- `samples/blue_green_variation_demo/original_tile_0020.png`
+- `samples/blue_green_variation_demo/blue_green_variant_rerendered.png`
+- `samples/blue_green_variation_demo/result.png`
 - `samples/blue_green_variation_demo/original_tile_0020.json`
 - `samples/blue_green_variation_demo/blue_green_variant.json`
 
-### JSON Differences
-
-Generate a diff:
+To inspect JSON-level changes:
 
 ```bash
 diff -u samples/blue_green_variation_demo/original_tile_0020.json samples/blue_green_variation_demo/blue_green_variant.json
-```
-
-Example excerpt:
-
-```diff
-@@ -3,10 +3,10 @@
-   "height": 32,
-   "palette": [
-     "#00000000",
--    "#8E3F38FF",
--    "#515F6BFF",
-+    "#3A5F8CFF",
-+    "#2A4837FF",
-     "#EC6A5EFF",
--    "#CF5E53FF",
-+    "#9AB85BFF",
-     "#778D9FFF",
-     "#647685FF",
-     "#637585FF"
 ```
 
 ## Asset Attribution
